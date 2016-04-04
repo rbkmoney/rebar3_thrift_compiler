@@ -1,0 +1,9 @@
+{application, rebar3_thrift_compiler, [
+    {description, "Thrift IDL compiler for Rebar 3"},
+    {vsn, "0.1"},
+    {applications, [kernel, stdlib]},
+    {modules, []},
+    {maintainers, ["Andrey Mayorov"]},
+    {licenses, ["MIT"]},
+    {links, [{"Github", "https://github.com/rbkmoney/rebar3_thrift_compiler"}]}
+]}.
