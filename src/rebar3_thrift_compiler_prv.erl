@@ -153,7 +153,7 @@ get_in_files(Root, Opts) ->
     case get_opt(in_files, Opts) of
         all ->
             get_canonical_paths(rebar_utils:find_files(Dir, "^.*\.thrift$"));
-        List when is_list(List) ->
+        List ->
             lists:map(
                 fun rebar3_thrift_compiler_utils:assert_file/1,
                 get_canonical_paths(lists:map(fun (Path) -> filename:join(Dir, Path) end, List))
@@ -167,7 +167,22 @@ get_out_dirs(Root, Opts) ->
 
 get_opt(K, Opts) ->
     {_, V} = lists:keyfind(K, 1, Opts),
+    _ = validate_opt(K, V) orelse rebar_api:abort("Invalid `~p` value: ~p", [K, V]),
     V.
+
+validate_opt(K, V) when K == in_dir orelse K == out_erl_dir orelse K == out_hrl_dir ->
+    validate_path(V);
+validate_opt(in_files, all) ->
+    true;
+validate_opt(in_files, V) ->
+    is_list(V) andalso lists:all(fun validate_path/1, V);
+validate_opt(gen, V) ->
+    io_lib:printable_list(V);
+validate_opt(_, _) ->
+    false.
+
+validate_path(V) ->
+    io_lib:printable_unicode_list(V) orelse is_binary(V).
 
 ensure_dirs(Dirs) when is_tuple(Dirs) ->
     lists:foreach(fun rebar3_thrift_compiler_utils:ensure_dir/1, tuple_to_list(Dirs)).

@@ -1,6 +1,6 @@
 {application, rebar3_thrift_compiler, [
     {description, "Thrift IDL compiler for Rebar 3"},
-    {vsn, "0.1"},
+    {vsn, "0.2"},
     {applications, [kernel, stdlib]},
     {modules, []},
     {maintainers, ["Andrey Mayorov"]},
