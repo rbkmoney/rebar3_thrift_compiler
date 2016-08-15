@@ -64,6 +64,9 @@ opts() ->
 -spec do(rebar_state:t()) -> {ok, rebar_state:t()} | {error, string()}.
 
 do(State) ->
+    Cwd = rebar_state:dir(State),
+    Providers = rebar_state:providers(State),
+    rebar_hooks:run_all_hooks(Cwd, pre, thrift, Providers, State),
     CmdOpts = rebar_state:command_parsed_args(State),
     ok = lists:foreach(
         fun (AppInfo) -> rebar3_thrift_compiler_prv:compile(AppInfo, CmdOpts) end,
