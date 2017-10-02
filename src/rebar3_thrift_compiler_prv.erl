@@ -123,30 +123,26 @@ get_all_opts(AppInfo, {CmdOpts0, InFiles}) ->
         [_ | _] -> [{in_files, InFiles} | CmdOpts0];
         [] -> CmdOpts0
     end,
-    merge_opts(DefOpts, merge_opts(AppOpts, CmdOpts)).
+    merge_opts(DefOpts, merge_opts(AppOpts, dict:from_list(CmdOpts))).
 
 get_app_opts(AppInfo) ->
     case dict:find(thrift_compiler_opts, rebar_app_info:opts(AppInfo)) of
-        {ok, Value} -> Value;
-        error -> []
+        {ok, Value} -> dict:from_list(Value);
+        error -> dict:new()
     end.
 
 merge_opts(Opts0, Opts1) ->
-    lists:foldl(fun merge_opt/2, Opts0, Opts1).
-
-merge_opt({Key, _} = Opt, Acc) ->
-    lists:keystore(Key, 1, Acc, Opt);
-merge_opt(_Opt, Acc) ->
-    Acc.
+    dict:merge(fun(K,A,B)->B end, Opts0, Opts1).
 
 get_default_opts() ->
+    dict:from_list(
     [
         {in_dir, "proto"},
         {in_files, all},
         {out_erl_dir, "src"},
         {out_hrl_dir, "include"},
         {gen, "erl"}
-    ].
+    ]).
 
 get_in_files(Root, Opts) ->
     Dir = rebar3_thrift_compiler_utils:assert_dir(filename:join(Root, get_opt(in_dir, Opts))),
@@ -166,7 +162,7 @@ get_out_dirs(Root, Opts) ->
     {OutErl, OutHrl}.
 
 get_opt(K, Opts) ->
-    {_, V} = lists:keyfind(K, 1, Opts),
+    {ok, V} = dict:find(K, Opts),
     _ = validate_opt(K, V) orelse rebar_api:abort("Invalid `~p` value: ~p", [K, V]),
     V.
 
