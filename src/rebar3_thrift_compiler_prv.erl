@@ -55,7 +55,7 @@ compile_one(InFile, {OutErlDir, _OutHrlDir}, Opts) ->
     end.
 
 construct_command(InFile, OutErlDir, Opts) ->
-    CmdFrags = ["thrift", "-r", "--gen", get_opt(gen, Opts), "--out", OutErlDir, InFile],
+    CmdFrags = ["thrift", "-r", "--gen", get_opt(gen, Opts), get_extra(), "--out", OutErlDir, InFile],
     string:join(CmdFrags, " ").
 
 distribute_files({OutErlDir, OutHrlDir}) ->
@@ -183,6 +183,12 @@ validate_opt(_, _) ->
 
 validate_path(V) ->
     io_lib:printable_unicode_list(V) orelse is_binary(V).
+
+get_extra() ->
+    case os:getenv("THRIFT_EXTRA_OPTS") of
+        false -> "";
+        Value -> Value
+    end.
 
 ensure_dirs(Dirs) when is_tuple(Dirs) ->
     lists:foreach(fun rebar3_thrift_compiler_utils:ensure_dir/1, tuple_to_list(Dirs)).
