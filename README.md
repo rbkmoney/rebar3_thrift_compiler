@@ -68,3 +68,9 @@ Full list of options you can change to your taste, you can always fire `rebar3 h
     {gen, "erl:legacy_names"}
 ]}.
 ```
+
+Also you can pass any additional arguments to thrift compiler via `THRIFT_EXTRA_OPTS` environment variable, such as:
+
+```bash
+export THRIFT_EXTRA_OPTS='-v -I /path/to/your/includes/'
+```
