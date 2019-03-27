@@ -33,6 +33,7 @@ init(State) ->
             "    {in_files, [\"file1.thrift\", ...]}, % explicit list of files to compile\n"
             "    {out_erl_dir, \"src\"},              % where *.erl files fall\n"
             "    {out_hrl_dir, \"include\"},          % where *.hrl files fall\n"
+            "    {include_dirs, []},                % list of directories searched for includes\n"
             "    {gen, \"erl:legacy_names\"}          % what generator to invoke\n"
             "  ]}."
             "\n"
@@ -69,7 +70,7 @@ do(State) ->
     rebar_hooks:run_all_hooks(Cwd, pre, thrift, Providers, State),
     CmdOpts = rebar_state:command_parsed_args(State),
     ok = lists:foreach(
-        fun (AppInfo) -> rebar3_thrift_compiler_prv:compile(AppInfo, CmdOpts) end,
+        fun (AppInfo) -> rebar3_thrift_compiler_prv:compile(AppInfo, CmdOpts, State) end,
         get_apps(State)
     ),
     {ok, State}.
