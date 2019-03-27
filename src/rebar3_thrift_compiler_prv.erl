@@ -121,8 +121,13 @@ get_all_opts(AppInfo, CmdOpts, State) ->
     RootDir    = rebar_dir:root_dir(State),
     DepsDir    = rebar_dir:deps_dir(State),
     AbsDepsDir = filename:join(RootDir, DepsDir),
-    Deps       = [ join(AbsDepsDir, Dep) || Dep <- rebar_app_info:deps(AppInfo) ],
-    append_list(include_dirs, [AbsDepsDir | Deps], Opts).
+    DepNames   = rebar_app_info:deps(AppInfo),
+    DepPathes  = [
+        rebar_app_info:dir(App) ||
+        App <- rebar_state:all_deps(State),
+        true == lists:member(rebar_app_info:name(App), DepNames)
+    ],
+    append_list(include_dirs, [AbsDepsDir | DepPathes], Opts).
 
 get_all_opts(AppInfo, {CmdOpts0, InFiles}) ->
     DefOpts = get_default_opts(),
@@ -208,12 +213,3 @@ get_canonical_paths(Paths) ->
 append_list(Key, Value, Opts) ->
     {Key, Old} = lists:keyfind(Key, 1, Opts),
     lists:keystore(Key, 1, Opts, {Key, Old ++ Value}).
-
-join(Dir1, Dir2) ->
-    Dir = filename:join(Dir1, Dir2),
-    ensure_string(Dir).
-
-ensure_string(S) when is_list(S) ->
-    S;
-ensure_string(B) when is_binary(B) ->
-    binary_to_list(B).

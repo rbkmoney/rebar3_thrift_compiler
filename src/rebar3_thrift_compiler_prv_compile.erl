@@ -33,7 +33,7 @@ init(State) ->
             "    {in_files, [\"file1.thrift\", ...]}, % explicit list of files to compile\n"
             "    {out_erl_dir, \"src\"},              % where *.erl files fall\n"
             "    {out_hrl_dir, \"include\"},          % where *.hrl files fall\n"
-            "    {include_dirs, []]},                 % list of directories searched for includes\n"
+            "    {include_dirs, []},                % list of directories searched for includes\n"
             "    {gen, \"erl:legacy_names\"}          % what generator to invoke\n"
             "  ]}."
             "\n"
