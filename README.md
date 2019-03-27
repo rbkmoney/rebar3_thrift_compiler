@@ -64,6 +64,8 @@ Full list of options you can change to your taste, you can always fire `rebar3 h
     {out_erl_dir, "src"},
     % Directory to put all generated *.hrl files into, relative to application output directory
     {out_hrl_dir, "include"},
+    % List of directories searched for include directives
+    {include_dirs, []},
     % Generator (with arbitrary flags) to use when compiling *.thrift files
     {gen, "erl:legacy_names"}
 ]}.

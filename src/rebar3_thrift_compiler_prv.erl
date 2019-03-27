@@ -1,6 +1,6 @@
 -module(rebar3_thrift_compiler_prv).
 
--export([compile/2]).
+-export([compile/3]).
 -export([clean/2]).
 
 %%
@@ -8,10 +8,10 @@
 -type command_flags() :: [{atom(), string() | atom() | boolean()}].
 -type command_args() :: {command_flags(), [string()]}.
 
--spec compile(rebar_app_info:t(), command_args()) -> ok.
+-spec compile(rebar_app_info:t(), command_args(), rebar_state:t()) -> ok.
 
-compile(AppInfo, CmdOpts) ->
-    Opts = get_all_opts(AppInfo, CmdOpts),
+compile(AppInfo, CmdOpts, State) ->
+    Opts = get_all_opts(AppInfo, CmdOpts, State),
     _ = rebar_api:debug("Thrift compiler opts: ~p", [Opts]),
     AppDir = rebar_app_info:dir(AppInfo),
     InFiles = get_in_files(AppDir, Opts),
@@ -55,7 +55,7 @@ compile_one(InFile, {OutErlDir, _OutHrlDir}, Opts) ->
     end.
 
 construct_command(InFile, OutErlDir, Opts) ->
-    CmdFrags = ["thrift", "-r", "--gen", get_opt(gen, Opts), "--out", OutErlDir, InFile],
+    CmdFrags = ["thrift", "-r", "--gen", get_opt(gen, Opts) | get_includes(Opts)] ++ ["--out", OutErlDir, InFile],
     string:join(CmdFrags, " ").
 
 distribute_files({OutErlDir, OutHrlDir}) ->
@@ -116,6 +116,14 @@ erl_file_to_hrl(Path) ->
 
 %%
 
+get_all_opts(AppInfo, CmdOpts, State) ->
+    Opts       = get_all_opts(AppInfo, CmdOpts),
+    RootDir    = rebar_dir:root_dir(State),
+    DepsDir    = rebar_dir:deps_dir(State),
+    AbsDepsDir = filename:join(RootDir, DepsDir),
+    Deps       = [ join(AbsDepsDir, Dep) || Dep <- rebar_app_info:deps(AppInfo) ],
+    append_list(include_dirs, [AbsDepsDir | Deps], Opts).
+
 get_all_opts(AppInfo, {CmdOpts0, InFiles}) ->
     DefOpts = get_default_opts(),
     AppOpts = get_app_opts(AppInfo),
@@ -145,6 +153,7 @@ get_default_opts() ->
         {in_files, all},
         {out_erl_dir, "src"},
         {out_hrl_dir, "include"},
+        {include_dirs, []},
         {gen, "erl"}
     ].
 
@@ -170,11 +179,17 @@ get_opt(K, Opts) ->
     _ = validate_opt(K, V) orelse rebar_api:abort("Invalid `~p` value: ~p", [K, V]),
     V.
 
+get_includes(Opts) ->
+    Dirs = get_opt(include_dirs, Opts),
+    [ string:join(["-I", Dir], " ") || Dir <- Dirs ].
+
 validate_opt(K, V) when K == in_dir orelse K == out_erl_dir orelse K == out_hrl_dir ->
     validate_path(V);
 validate_opt(in_files, all) ->
     true;
 validate_opt(in_files, V) ->
+    is_list(V) andalso lists:all(fun validate_path/1, V);
+validate_opt(include_dirs, V) ->
     is_list(V) andalso lists:all(fun validate_path/1, V);
 validate_opt(gen, V) ->
     io_lib:printable_list(V);
@@ -189,3 +204,16 @@ ensure_dirs(Dirs) when is_tuple(Dirs) ->
 
 get_canonical_paths(Paths) ->
     lists:map(fun rebar_file_utils:canonical_path/1, Paths).
+
+append_list(Key, Value, Opts) ->
+    {Key, Old} = lists:keyfind(Key, 1, Opts),
+    lists:keystore(Key, 1, Opts, {Key, Old ++ Value}).
+
+join(Dir1, Dir2) ->
+    Dir = filename:join(Dir1, Dir2),
+    ensure_string(Dir).
+
+ensure_string(S) when is_list(S) ->
+    S;
+ensure_string(B) when is_binary(B) ->
+    binary_to_list(B).
