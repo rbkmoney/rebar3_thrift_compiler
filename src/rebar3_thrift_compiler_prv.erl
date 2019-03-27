@@ -127,7 +127,7 @@ get_all_opts(AppInfo, CmdOpts, State) ->
         App <- rebar_state:all_deps(State),
         true == lists:member(rebar_app_info:name(App), DepNames)
     ],
-    append_list(include_dirs, [AbsDepsDir | DepPathes], Opts).
+    append_list(include_dirs, [AbsDepsDir | DepPaths], Opts).
 
 get_all_opts(AppInfo, {CmdOpts0, InFiles}) ->
     DefOpts = get_default_opts(),
