@@ -122,7 +122,7 @@ get_all_opts(AppInfo, CmdOpts, State) ->
     DepsDir    = rebar_dir:deps_dir(State),
     AbsDepsDir = filename:join(RootDir, DepsDir),
     DepNames   = rebar_app_info:deps(AppInfo),
-    DepPathes  = [
+    DepPaths   = [
         rebar_app_info:dir(App) ||
         App <- rebar_state:all_deps(State),
         true == lists:member(rebar_app_info:name(App), DepNames)
