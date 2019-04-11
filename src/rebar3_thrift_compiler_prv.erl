@@ -14,7 +14,7 @@
 
 compile(AppInfo, CmdOpts, State) ->
     Opts = get_all_opts(AppInfo, CmdOpts, State),
-    _ = rebar_api:debug("Thrift compiler opts: ~p", [Opts]),
+    _ = rebar_api:debug("Thrift compiler opts: ~p", [dict:to_list(Opts)]),
     AppDir = rebar_app_info:dir(AppInfo),
     InFiles = get_in_files(AppDir, Opts),
     _ = rebar_api:debug("Thrift compiler input files: ~p", [InFiles]),
@@ -74,6 +74,7 @@ distribute_files({OutErlDir, OutHrlDir}) ->
 
 cleanup({OutErlDir, OutHrlDir}) ->
     Files = find_generated_files([OutErlDir, OutHrlDir]),
+    _ = rebar_api:debug("Thrift generated files for cleanup: ~p", [Files]),
     lists:foreach(fun rebar_file_utils:rm_rf/1, Files).
 
 %%
@@ -138,7 +139,8 @@ get_all_opts(AppInfo, {CmdOpts0, InFiles}) ->
         [_ | _] -> [{in_files, InFiles} | CmdOpts0];
         [] -> CmdOpts0
     end,
-    merge_opts(DefOpts, merge_opts(AppOpts, CmdOpts)).
+    Opts = merge_opts(DefOpts, merge_opts(AppOpts, CmdOpts)),
+    dict:from_list(Opts).
 
 get_app_opts(AppInfo) ->
     case dict:find(thrift_compiler_opts, rebar_app_info:opts(AppInfo)) of
@@ -182,7 +184,7 @@ get_out_dirs(Root, Opts) ->
     {OutErl, OutHrl}.
 
 get_opt(K, Opts) ->
-    {_, V} = lists:keyfind(K, 1, Opts),
+    V = dict:fetch(K, Opts),
     _ = validate_opt(K, V) orelse rebar_api:abort("Invalid `~p` value: ~p", [K, V]),
     V.
 
@@ -213,5 +215,5 @@ get_canonical_paths(Paths) ->
     lists:map(fun rebar_file_utils:canonical_path/1, Paths).
 
 append_list(Key, Value, Opts) ->
-    {Key, Old} = lists:keyfind(Key, 1, Opts),
-    lists:keystore(Key, 1, Opts, {Key, Old ++ Value}).
+    Old = dict:fetch(Key, Opts),
+    dict:store(Key, Old ++ Value, Opts).
