@@ -18,8 +18,7 @@ compile(AppInfo, CmdOpts, State) ->
     AppDir = rebar_app_info:dir(AppInfo),
     InFiles = get_in_files(AppDir, Opts),
     _ = rebar_api:debug("Thrift compiler input files: ~p", [InFiles]),
-    AppOutDir = rebar_app_info:out_dir(AppInfo),
-    OutDirs = get_out_dirs(AppOutDir, Opts),
+    OutDirs = get_out_dirs(AppDir, Opts),
     ok = ensure_dirs(OutDirs),
     try
         ok = compile_files(InFiles, OutDirs, Opts),
@@ -34,8 +33,8 @@ compile(AppInfo, CmdOpts, State) ->
 
 clean(AppInfo, CmdOpts) ->
     Opts = get_all_opts(AppInfo, CmdOpts),
-    AppOutDir = rebar_app_info:out_dir(AppInfo),
-    OutDirs = get_out_dirs(AppOutDir, Opts),
+    AppDir = rebar_app_info:dir(AppInfo),
+    OutDirs = get_out_dirs(AppDir, Opts),
     cleanup(OutDirs).
 
 %%
