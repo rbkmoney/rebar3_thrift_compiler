@@ -123,13 +123,14 @@ get_all_opts(AppInfo, CmdOpts, State) ->
     RootDir    = rebar_dir:root_dir(State),
     DepsDir    = rebar_dir:deps_dir(State),
     AbsDepsDir = filename:join(RootDir, DepsDir),
+    AbsCODir   = rebar_dir:checkouts_dir(State),
     DepNames   = rebar_app_info:deps(AppInfo),
     DepPaths   = [
         rebar_app_info:dir(App) ||
         App <- rebar_state:all_deps(State),
         true == lists:member(rebar_app_info:name(App), DepNames)
     ],
-    append_list(include_dirs, [AbsDepsDir | DepPaths], Opts).
+    append_list(include_dirs, [AbsCODir, AbsDepsDir | DepPaths], Opts).
 
 get_all_opts(AppInfo, {CmdOpts0, InFiles}) ->
     DefOpts = get_default_opts(),
